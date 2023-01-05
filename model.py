@@ -45,7 +45,7 @@ class mdpvsr_1defconv(nn.Module):
         output_convlstm = self.convlstm1(X)
         #         print(f'output_convlstm shape {output_convlstm.shape}')
         x = output_convlstm
-        y = list(torch.chunk(x, 5, dim=1))
+        y = list(torch.chunk(x, self.group_of_frames, dim=1))
         for i in range(len(y)):
             y[i] = torch.squeeze(y[i])
         x = torch.cat(y, dim=1)

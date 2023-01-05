@@ -21,7 +21,6 @@ import argparse
 import cv2
 
 
-# +
 # Initialize parser
 parser = argparse.ArgumentParser()
 # Adding optional argument
@@ -29,8 +28,10 @@ parser = argparse.ArgumentParser()
 
 # parser.add_argument("model", type=str, help="model to use")
 parser.add_argument("path", type=str, help="HR Path")
+parser.add_argument("data_size", type=int, help="data size")
 # parser.add_argument("lr_data", type=str, help="LR Path")
 parser.add_argument("batch_size", type=int, help="batch size")
+parser.add_argument("gof", type=int, help="group of frames")
 parser.add_argument("workers", type=int, help="workers")
 parser.add_argument("result", type=str, help="result Path (to save)")
 parser.add_argument("scale", type=int, help="downsampling scale")
@@ -38,7 +39,6 @@ parser.add_argument("epochs", type=int, help="epochs")
 parser.add_argument("name", type=str, help="model name")
 # Read arguments from command line
 args = parser.parse_args()
-# -
 
 # model_to_use = args.model
 res_path = args.result
@@ -46,19 +46,21 @@ scale = args.scale
 epochs = args.epochs
 name = args.name
 hr_path = args.path
+data_size = args.data_size
 # lr_path = args.lr_data
 batch_size = args.batch_size
 workers = args.workers
+gof = args.gof
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if not os.path.exists(res_path):
     os.makedirs(res_path)
 
-all_hr_data, all_lr_data = read_data(hr_path, scale)
+all_hr_data, all_lr_data = read_data(hr_path, scale, data_size)
 # all_lr_data = read_data(lr_path)
 print('read')
-train_loader, val_loader = data_load(all_lr_data,all_hr_data, batch_size, workers)
+train_loader, val_loader = data_load(all_lr_data,all_hr_data, batch_size, workers, gof)
 print('loaded')
 
 # ### Defining Model
@@ -92,10 +94,10 @@ print('Computation device: ', device)
 # -
 
 # elif model_to_use == 'mdpvsr_1defconv':
+# elif model_to_use == 'mdpvsr_1defconv':
 model = mdpvsr_1defconv(num_channels=train_loader.dataset[0][0].shape[1], num_kernels=train_loader.dataset[0][0].shape[1],
-               kernel_size=(3, 3), padding=(1,1), activation="relu", scale=4, group_of_frames = 5,
-            frame_size=(train_loader.dataset[0][0].shape[2],train_loader.dataset[0][0].shape[3])).to(device)
-# +
+               kernel_size=(3, 3), padding=(1,1), activation="relu", scale=4, group_of_frames = gof,
+            frame_size=(train_loader.dataset[0][0].shape[2],train_loader.dataset[0][0].shape[3])).to(device)# +
 # elif model_to_use == 'mdpvsr_2defconv':
 #     model = mdpvsr_2defconv(num_channels=train_loader.dataset[0][0].shape[0], num_kernels=train_loader.dataset[0][0].shape[1] // 2,
 #     kernel_size=(3, 3), padding = (1, 1), scale = scale).to(device)
@@ -261,8 +263,8 @@ for epoch in range(num_epochs):
 
     print("Epoch:{} Training Loss:{:.2f} Validation Loss:{:.2f} in {:.2f} and SSIM\n".format(
         epoch+1, train_loss, val_loss, time.time()-st))
-    print(f'Train PSNR avg {round(psnr_avg, 2)}, PSNR max {round(psnr_max,2)} and Test PSNR avg {round(psnr_test_avg, 2)}, test PSNR max {round(psnr_test_max,2)}')
-    print(f'Train SSIM avg {round(ssim_avg,2)} , SSIM max {round(ssim_max,2)} and Test SSIM avg {round(ssim_test_avg,2)}, test SSIM max {round(ssim_test_max,2)}')
+    print(f'Train PSNR avg {torch.round(psnr_avg, decimals=2)}, PSNR max {torch.round(psnr_max, decimals=2)} and Test PSNR avg {torch.round(psnr_test_avg, 2)}, test PSNR max {torch.round(psnr_test_max, decimals=2)}')
+    print(f'Train SSIM avg {torch.round(ssim_avg, decimals=2)} , SSIM max {torch.round(ssim_max, decimals=2)} and Test SSIM avg {torch.round(ssim_test_avg, decimals=2)}, test SSIM max {round(ssim_test_max, decimals=2)}')
 
 
 
