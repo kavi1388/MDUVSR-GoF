@@ -263,8 +263,8 @@ for epoch in range(num_epochs):
 
     print("Epoch:{} Training Loss:{:.2f} Validation Loss:{:.2f} in {:.2f} and SSIM\n".format(
         epoch+1, train_loss, val_loss, time.time()-st))
-    print(f'Train PSNR avg {torch.round(psnr_avg, decimals=2)}, PSNR max {torch.round(psnr_max, decimals=2)} and Test PSNR avg {torch.round(psnr_test_avg, 2)}, test PSNR max {torch.round(psnr_test_max, decimals=2)}')
-    print(f'Train SSIM avg {torch.round(ssim_avg, decimals=2)} , SSIM max {torch.round(ssim_max, decimals=2)} and Test SSIM avg {torch.round(ssim_test_avg, decimals=2)}, test SSIM max {round(ssim_test_max, decimals=2)}')
+    print(f'Train PSNR avg {torch.round(psnr_avg)}, PSNR max {torch.round(psnr_max)} and Test PSNR avg {torch.round(psnr_test_avg)}, test PSNR max {torch.round(psnr_test_max)}')
+    print(f'Train SSIM avg {torch.round(ssim_avg)} , SSIM max {torch.round(ssim_max)} and Test SSIM avg {torch.round(ssim_test_avg)}, test SSIM max {torch.round(ssim_test_max)}')
 
 
 
