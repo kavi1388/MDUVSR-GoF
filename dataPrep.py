@@ -61,12 +61,15 @@ def read_data(path,scale,data_size):
     #                                 hr_data.append(patch)
     return hr_data, lr_data
 
+# parameters to the function are lr_frames, corresponding hr frames, group_of_frames as input, max_len for hr frames
+#(argument given in data_load function)
 class CustomDataset(Dataset):
     def __init__(self, image_data, labels, gof, max_len):
         self.gof = gof
-        self.max_len = max_len-self.gof
+        self.max_len = max_len//self.gof
         self.image_data = image_data
         self.labels = labels
+        print(max_len)
 
     def __len__(self):
 #         print(len(self.image_data))
@@ -74,8 +77,8 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, index):
 
-        image = self.image_data[index:index + self.gof]
-        label = self.labels[index+(self.gof//2)]
+        image = self.image_data[(index*self.gof):(index*self.gof) + self.gof]
+        label = self.labels[(index*self.gof):(index*self.gof) + self.gof]
         return (
         torch.tensor(image, dtype=torch.float),
         torch.tensor(label, dtype=torch.float)
