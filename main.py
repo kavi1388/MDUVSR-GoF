@@ -175,13 +175,13 @@ for epoch in range(num_epochs):
         if batch_num % 3 ==0:
             psnr_train.append(piq.psnr(output.cpu(), target, reduction='mean').mean())
             ssim_train.append(ssim.ssim(output.cpu(), target, kernel)[0])
-        ssim_train_single.append(ssim_train[-1].mean())
+            ssim_train_single.append(ssim_train[-1].mean())
         # lpips.append(piq.LPIPS(reduction='mean')(torch.clamp(output, 0, 1), torch.clamp(target.cuda(), 0, 255)))
         torch.cuda.empty_cache()
         gc.collect()
     train_loss /= len(train_loader.dataset)
     psnr_avg = sum(psnr_train) / len(psnr_train)
-    ssim_avg = sum(ssim_train_single) / len(ssim_train)
+    ssim_avg = sum(ssim_train_single) / len(ssim_train_single)
     # lpips_avg= sum(lpips)/len(train_loader.dataset)
     psnr_max = max(psnr_train)
     ssim_max = max(ssim_train_single)
@@ -203,6 +203,6 @@ for epoch in range(num_epochs):
         num = 1
         for item in ssim_train:
             # write each item on a new line
-            fp.write(num)
+            fp.write(str(num))
             fp.write("%s\n" % item)
             num += num
