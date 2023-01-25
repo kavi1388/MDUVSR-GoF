@@ -3,6 +3,10 @@ import torch.nn as nn
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Original ConvLSTM cell as proposed by Shi et al.
+# Original ConvLSTM cell as proposed by Shi et al.
+# device = torch.device('cpu')
+
+# Original ConvLSTM cell as proposed by Shi et al.
 class ConvLSTMCell(nn.Module):
 
     def __init__(self, in_channels, out_channels,
@@ -28,9 +32,6 @@ class ConvLSTMCell(nn.Module):
         self.W_cf = nn.Parameter(torch.Tensor(out_channels, *frame_size))
 
     def forward(self, X, H_prev, C_prev):
-        #         print(f'X in conlstm cell {X.shape}')
-        #         print(f'H_prev is {H_prev.shape}')
-        #         print(f'C_prev is {C_prev.shape}')
 
         # Idea adapted from https://github.com/ndrplz/ConvLSTM_pytorch
         conv_output = self.conv(torch.cat([X, H_prev], dim=1))
@@ -66,7 +67,6 @@ class ConvLSTM(nn.Module):
 
     def forward(self, X):
         # X is a frame sequence (batch_size, num_channels, seq_len, height, width)
-        #         print(f'X is {X.size()}')
 
         # Get the dimensions
         batch_size, _, seq_len, height, width = X.size()
@@ -90,4 +90,3 @@ class ConvLSTM(nn.Module):
             output[:, :, time_step] = H
 
         return output
-
