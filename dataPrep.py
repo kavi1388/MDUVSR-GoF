@@ -24,61 +24,61 @@ parser.add_argument("data_size", type=int, help="data size")
 # Use GPU if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # # Load Data as Numpy Array
-# def read_data(path,scale,data_size):
-#     hr_data = []
-#     lr_data = []
-#     patch = []
-#     for dirname, _, filenames in os.walk(path):
-#         files = Tcl().call('lsort', '-dict', filenames)
-#         for filename in files:
-#             if len(hr_data)<data_size:
-#                 f = os.path.join(dirname, filename)
-#     #             print(f)
-#                 if filename.split('.')[-1] == 'png' or filename.split('.')[-1] == 'jpg':
-#                     img = Image.open(f)
-#                     img.load()
-#                     img_array = np.asarray(img)
-#                     img_array_lr = downsample(img_array, scale)
-#                     img_array_lr = np.swapaxes(img_array_lr,
-#                                             np.where(np.asarray(img_array_lr.shape) == min(img_array_lr.shape))[0][0], 0)
-#                     lr_data.append(img_array_lr)
-#
-#                     img_array = np.swapaxes(img_array, np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0], 0)
-#                     hr_data.append(img_array)
-#
-#     return hr_data, lr_data
-
-
-def read_data(hr_path,lr_path):
+def read_data(path,scale,data_size):
     hr_data = []
     lr_data = []
-
-    for dirname, _, filenames in os.walk(hr_path):
+    patch = []
+    for dirname, _, filenames in os.walk(path):
         files = Tcl().call('lsort', '-dict', filenames)
         for filename in files:
-            f = os.path.join(dirname, filename)
-#             print(f)
-            if filename.split('.')[-1] == 'png' or filename.split('.')[-1] == 'jpg':
-                img = Image.open(f)
-                img.load()
-                img_array = np.asarray(img)
-                img_array = np.swapaxes(img_array,
-                                        np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0], 0)
-                hr_data.append(img_array)
+            if len(hr_data)<data_size:
+                f = os.path.join(dirname, filename)
+    #             print(f)
+                if filename.split('.')[-1] == 'png' or filename.split('.')[-1] == 'jpg':
+                    img = Image.open(f)
+                    img.load()
+                    img_array = np.asarray(img)
+                    img_array_lr = downsample(img_array, scale)
+                    img_array_lr = np.swapaxes(img_array_lr,
+                                            np.where(np.asarray(img_array_lr.shape) == min(img_array_lr.shape))[0][0], 0)
+                    lr_data.append(img_array_lr)
 
-                for dirname, _, filenames in os.walk(lr_path):
-                    files = Tcl().call('lsort', '-dict', filenames)
-                    for filename in files:
-                        f = os.path.join(dirname, filename)
-                        #             print(f)
-                        if filename.split('.')[-1] == 'png' or filename.split('.')[-1] == 'jpg':
-                            img = Image.open(f)
-                            img.load()
-                            img_array = np.asarray(img)
-                            img_array = np.swapaxes(img_array,np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0],
-                                                    0)
-                            lr_data.append(img_array)
+                    img_array = np.swapaxes(img_array, np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0], 0)
+                    hr_data.append(img_array)
+
     return hr_data, lr_data
+
+#
+# def read_data(hr_path,lr_path):
+#     hr_data = []
+#     lr_data = []
+#
+#     for dirname, _, filenames in os.walk(hr_path):
+#         files = Tcl().call('lsort', '-dict', filenames)
+#         for filename in files:
+#             f = os.path.join(dirname, filename)
+# #             print(f)
+#             if filename.split('.')[-1] == 'png' or filename.split('.')[-1] == 'jpg':
+#                 img = Image.open(f)
+#                 img.load()
+#                 img_array = np.asarray(img)
+#                 img_array = np.swapaxes(img_array,
+#                                         np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0], 0)
+#                 hr_data.append(img_array)
+#
+#                 for dirname, _, filenames in os.walk(lr_path):
+#                     files = Tcl().call('lsort', '-dict', filenames)
+#                     for filename in files:
+#                         f = os.path.join(dirname, filename)
+#                         #             print(f)
+#                         if filename.split('.')[-1] == 'png' or filename.split('.')[-1] == 'jpg':
+#                             img = Image.open(f)
+#                             img.load()
+#                             img_array = np.asarray(img)
+#                             img_array = np.swapaxes(img_array,np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0],
+#                                                     0)
+#                             lr_data.append(img_array)
+#     return hr_data, lr_data
 
 # parameters to the function are lr_frames, corresponding hr frames, group_of_frames as input, max_len for hr frames
 #(argument given in data_load function)

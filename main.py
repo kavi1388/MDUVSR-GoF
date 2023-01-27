@@ -194,8 +194,8 @@ for epoch in range(num_epochs):
         optimizer.step()
         optimizer.zero_grad()
         train_loss += loss.item()
-        psnr.append(piq.psnr(output.cpu(), target, data_range=1., reduction='mean').mean())
-        ssim.append(piq.ssim(output.cpu(), target, data_range=1.))
+        psnr.append(piq.psnr(output, target.cuda(), data_range=1., reduction='mean').mean())
+        ssim.append(piq.ssim(output, target.cuda(), data_range=1.))
         if count % 10 == 0:
             if not os.path.exists(f'{res_path}/{params}'):
                 os.makedirs(f'{res_path}/{params}')
