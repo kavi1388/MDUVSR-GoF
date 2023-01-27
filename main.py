@@ -241,13 +241,13 @@ for epoch in range(num_epochs):
         for item in ssim:
             # write each item on a new line
             fp.write("%s\n" % item)
-            num += num
+            # num += num
 
         fp.write("\n PSNR")
         for item in psnr:
             # write each item on a new line
             fp.write("%s\n" % item)
-            num += num
+            # num += num
 
     print("Epoch:{} Training Loss:{:.6f} in {:.2f}\n".format(
         epoch+1, train_loss, time.time()-st))
