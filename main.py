@@ -212,11 +212,11 @@ for epoch in range(num_epochs):
             plt.subplot(144)
             plt.title('Bicubic')
             plt.imshow(cv2.resize((input * 255).cpu()[-1][3].detach().numpy().T, (target.shape[2], target.shape[3]),
-                                  interpolation=cv2.INTER_LINEAR).astype(int))
+                                  interpolation=cv2.INTER_CUBIC).astype(int))
             # plt.savefig(f"{res_path}/{params}/psnr_{piq.psnr(output.cpu(), target, data_range=1., reduction='mean')} "
             #             f"and ssim_{piq.ssim(output.cpu(), target, data_range=1.)}.png", bbox_inches="tight",
             #             pad_inches=0.0)
-            plt.savefig(f"{count}_model_training_output.png", bbox_inches="tight",
+            plt.savefig(f"{res_path}/{params}/{count}_model_training_output.png", bbox_inches="tight",
                         pad_inches=0.0)
             # plt.show()
         # lpips.append(piq.LPIPS(reduction='mean')(torch.clamp(output, 0, 1), torch.clamp(target.cuda(), 0, 255)))
