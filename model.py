@@ -8,6 +8,10 @@ import gc
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+import gc
+
+
 class mdpvsr_1defconv(nn.Module):
 
     def __init__(self, num_channels, num_kernels, kernel_size, padding,
@@ -46,7 +50,7 @@ class mdpvsr_1defconv(nn.Module):
 
         self.deformable_convolution1 = DeformableConv2d(
             in_channels=group_of_frames * num_channels,
-            out_channels=group_of_frames * num_channels,
+            out_channels=num_channels,
             kernel_size=kernel_size[0],
             stride=1,
             padding=padding[0],
@@ -57,12 +61,13 @@ class mdpvsr_1defconv(nn.Module):
         self.conv1 = nn.Conv3d(
             in_channels=num_kernels, out_channels=num_channels, kernel_size=(1, 1, 1), padding=0)
 
-        self.conv2 = nn.Conv3d(
-            in_channels=num_channels, out_channels=num_channels * scale ** 2, kernel_size=(1, 1, 1), padding=0)
+        self.conv2 = nn.Conv2d(
+            in_channels=num_channels, out_channels=num_channels * scale ** 2,
+            kernel_size=kernel_size, padding=padding)
 
         self.up_block = nn.PixelShuffle(scale)
 
-    def forward(self, X, state=None):
+    def forward(self, X):
         lr = torch.transpose(X, 1, 2)
         x = self.sequential(lr)
         x = self.conv1(x)
@@ -71,12 +76,6 @@ class mdpvsr_1defconv(nn.Module):
             y[i] = torch.squeeze(y[i])
         x = torch.cat(y, dim=1)
         x = self.deformable_convolution1(x)
-        x = torch.chunk(x, self.group_of_frames, dim=1)
-        x = torch.stack(x, dim=1)
-        x = torch.transpose(x, 1, 2)
-
         x = self.conv2(x)
-        x = torch.transpose(x, 1, 2)
-
         output = self.up_block(x)
         return nn.Sigmoid()(output)

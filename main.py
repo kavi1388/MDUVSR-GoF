@@ -143,17 +143,34 @@ scaler = torch.cuda.amp.GradScaler()
 optimizer = optim.AdamW(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, amsgrad=False)
 
 # criterion = nn.L1Loss()
+
+
 # criterion = SSIMLoss().cuda()
 criterion = CharbonnierLoss()
 num_epochs = epochs
 # num_epochs = 3
-kernel = gaussian_kernel(1).repeat(7, 1, 1)
 
-# model.to(device)
+# Training the model
+
+# Model training parameters
+# Creating results path
+if not os.path.exists(res_path):
+    os.makedirs(res_path)
+
+# Initializing Gradient Scaler
+scaler = torch.cuda.amp.GradScaler()
+
+# Initializing Optimizer
+optimizer = optim.AdamW(model.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, amsgrad=False)
+
+# Loss Criterion and Epochs
+criterion = CharbonnierLoss()
+num_epochs = epochs
+params = 'ConvLSTM_zero_init_26th_Jan'
 """### Training"""
 for epoch in range(num_epochs):
-    psnr_train = []
-    ssim_train = []
+    psnr = []
+    ssim = []
     lpips = []
     train_loss = 0
     ssim_best = 0
@@ -161,48 +178,77 @@ for epoch in range(num_epochs):
     psnr_test = []
     ssim_test = []
     lpips_test = []
-    ssim_train_single =[]
     model.train()
     st = time.time()
     for batch_num, data in enumerate(train_loader, 0):
         input, target = data[0].to(device), data[1]
+        # if batch_num % 200 == 0:
+        #     print(f'batch_num {batch_num}')
+        # Modifying target
+        #         target = target.permute(0,1,2,4,3)
         output = model(input.cuda())
+        #         print(f'output {output.size()}')
+        #         print(f'target {target.size()}')
         loss = criterion(output, target.cuda())
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
         train_loss += loss.item()
-        if batch_num % 3 ==0:
-            psnr_train.append(piq.psnr(output.cpu(), target, reduction='mean').mean())
-            ssim_train.append(ssim.ssim(output.cpu(), target, kernel)[0])
-            ssim_train_single.append(ssim_train[-1].mean())
+        psnr.append(piq.psnr(output.cpu(), target, data_range=1., reduction='mean').mean())
+        ssim.append(piq.ssim(output.cpu(), target, data_range=1.))
+        if count % 10 == 0:
+            if not os.path.exists(f'{res_path}/{params}'):
+                os.makedirs(f'{res_path}/{params}')
+            plt.figure(figsize=(40, 10))
+            plt.subplot(141)
+            plt.title('Input')
+            plt.imshow((input * 255).cpu()[-1][3].detach().numpy().T.astype(int))
+            plt.subplot(142)
+            plt.title('Our Result')
+            plt.imshow((output * 255).cpu()[-1].detach().numpy().T.astype(int))
+            plt.subplot(143)
+            plt.title('Target')
+            plt.imshow((target * 255).cpu()[-1].detach().numpy().T.astype(int))
+            plt.subplot(144)
+            plt.title('Bicubic')
+            plt.imshow(cv2.resize((input * 255).cpu()[-1][3].detach().numpy().T, (target.shape[2], target.shape[3]),
+                                  interpolation=cv2.INTER_LINEAR).astype(int))
+            # plt.savefig(f"{res_path}/{params}/psnr_{piq.psnr(output.cpu(), target, data_range=1., reduction='mean')} "
+            #             f"and ssim_{piq.ssim(output.cpu(), target, data_range=1.)}.png", bbox_inches="tight",
+            #             pad_inches=0.0)
+            plt.savefig(f"{count}_model_training_output.png", bbox_inches="tight",
+                        pad_inches=0.0)
+            # plt.show()
         # lpips.append(piq.LPIPS(reduction='mean')(torch.clamp(output, 0, 1), torch.clamp(target.cuda(), 0, 255)))
         torch.cuda.empty_cache()
-        gc.collect()
     train_loss /= len(train_loader.dataset)
-    psnr_avg = sum(psnr_train) / len(psnr_train)
-    ssim_avg = sum(ssim_train_single) / len(ssim_train_single)
+    psnr_avg = sum(psnr) / len(psnr)
+    ssim_avg = sum(ssim) / len(ssim)
     # lpips_avg= sum(lpips)/len(train_loader.dataset)
-    psnr_max = max(psnr_train)
-    ssim_max = max(ssim_train_single)
+    psnr_max = max(psnr)
+    ssim_max = max(ssim)
 
     if ssim_avg > ssim_best:
         ssim_best = ssim_avg
-        params = f'{epoch} , scale={scale} ,ssim = {ssim_best} ,{name}'
-        PATH = f'{res_path}/{params}.pth'
+        PATH = f'{res_path}/{params}_Epoch_{epoch + 1}.pth'
         torch.save(model.state_dict(), PATH)
 
-    print("Epoch:{} Training Loss:{:.2f} in {:.2f} \n".format(
-        epoch + 1, train_loss, time.time() - st))
-    print(
-        f'Train PSNR avg {psnr_avg}, PSNR max {psnr_max} and Train SSIM avg {ssim_avg} , SSIM max {ssim_max}')
-
-    with open(r'name_quality metrics', 'w') as fp:
+    if not os.path.exists(f'{res_path}/{params}/metrics'):
+        os.makedirs(f'{res_path}/{params}/metrics')
+    with open(f'{res_path}/{params}/metrics/{epoch + 1}_quality metrics', 'w') as fp:
 
         fp.write("\n SSIM")
-        num = 1
-        for item in ssim_train:
+        for item in ssim:
             # write each item on a new line
-            fp.write(str(num))
             fp.write("%s\n" % item)
             num += num
+
+        fp.write("\n PSNR")
+        for item in psnr:
+            # write each item on a new line
+            fp.write("%s\n" % item)
+            num += num
+
+    print("Epoch:{} Training Loss:{:.6f} in {:.2f}\n".format(
+        epoch+1, train_loss, time.time()-st))
+    print(f'Train PSNR avg {psnr_avg}, PSNR max {psnr_max}, Train SSIM avg {ssim_avg} , SSIM max {ssim_max}')

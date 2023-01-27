@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# Original ConvLSTM cell as proposed by Shi et al.
-# Original ConvLSTM cell as proposed by Shi et al.
-# device = torch.device('cpu')
 
 # Original ConvLSTM cell as proposed by Shi et al.
 class ConvLSTMCell(nn.Module):

@@ -43,44 +43,31 @@ def read_data(path,scale,data_size):
                                             np.where(np.asarray(img_array_lr.shape) == min(img_array_lr.shape))[0][0], 0)
                     lr_data.append(img_array_lr)
 
-    #                     patches = patchify(img_array_lr, (3, img_array_lr.shape[1] // 2, img_array_lr.shape[2] // 2),
-    #                                        step=(img_array_lr.shape[1] // 8))
-    #                     for i in range(patches.shape[0]):
-    #                         for j in range(patches.shape[1]):
-    #                             for k in range(patches.shape[2]):
-    #                                 patch = patches[i, j, k]
-    #                                 lr_data.append(patch)
-    #                     #
                     img_array = np.swapaxes(img_array, np.where(np.asarray(img_array.shape) == min(img_array.shape))[0][0], 0)
                     hr_data.append(img_array)
-    #                     patches = patchify(img_array, (3, img_array.shape[1] // 4, img_array.shape[2] // 4), step=(img_array.shape[1] // 8))
-    #                     for i in range(patches.shape[0]):
-    #                         for j in range(patches.shape[1]):
-    #                             for k in range(patches.shape[2]):
-    #                                 patch = patches[i, j, k]
-    #                                 hr_data.append(patch)
+
     return hr_data, lr_data
 
 # parameters to the function are lr_frames, corresponding hr frames, group_of_frames as input, max_len for hr frames
 #(argument given in data_load function)
+
 # parameters to the function are lr_frames, corresponding hr frames, group_of_frames as input, max_len for hr frames
 #(argument given in data_load function)
+
 class CustomDataset(Dataset):
     def __init__(self, image_data, labels, gof, max_len):
         self.gof = gof
         self.max_len = max_len//self.gof
         self.image_data = image_data
         self.labels = labels
-        print(max_len)
 
     def __len__(self):
-#         print(len(self.image_data))
         return (self.max_len)
 
     def __getitem__(self, index):
 
         image = self.image_data[(index*self.gof):(index*self.gof) + self.gof]/255.0
-        label = self.labels[(index*self.gof):(index*self.gof) + self.gof]/255.0
+        label = self.labels[(index*self.gof) + self.gof//2]/255.0
         return (
         torch.tensor(image, dtype=torch.float),
         torch.tensor(label, dtype=torch.float)
@@ -93,8 +80,8 @@ def data_load(all_lr_data, all_hr_data, batch_size, workers, gof):
     train_data_lr = all_lr_data[:3 * len(all_lr_data) // 4]
     print(f'len of train hr data ={len(train_data_hr)}')
 
-    val_data_hr = all_hr_data[3 * len(all_hr_data) // 4:(3 * len(all_hr_data) // 4) + (len(all_hr_data) // 4)]
-    val_data_lr = all_lr_data[3 * len(all_lr_data) // 4:(3 * len(all_lr_data) // 4) + (len(all_lr_data) // 4)]
+    val_data_hr = all_hr_data[3 * len(all_hr_data) // 4:len(all_hr_data)]
+    val_data_lr = all_lr_data[3 * len(all_lr_data) // 4:len(all_lr_data)]
 
     print(f'len of val hr data ={len(val_data_hr)}')
     # test_data_hr = all_hr_data[(len(all_hr_data)//3)+(len(all_hr_data)//4):(len(all_hr_data)//3)+(len(all_hr_data)//2)]
@@ -109,8 +96,8 @@ def data_load(all_lr_data, all_hr_data, batch_size, workers, gof):
     # test_data = CustomDataset(np.asarray(test_data_lr),np.asarray(test_data_hr))
     print(f'dataset created')
     # Load Data as Numpy Array
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False, num_workers=workers, drop_last=True)
-    val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=workers, drop_last=True)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=False, num_workers=workers)
+    val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False, num_workers=workers)
     # test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=workers)
 
     print(f'train {len(train_data_hr)}')
