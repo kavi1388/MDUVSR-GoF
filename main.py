@@ -196,7 +196,7 @@ for epoch in range(num_epochs):
         train_loss += loss.item()
         psnr.append(piq.psnr(output, target.cuda(), data_range=1., reduction='mean').mean())
         ssim.append(piq.ssim(output, target.cuda(), data_range=1.))
-        if count % 10 == 0:
+        if count % 100 == 0:
             if not os.path.exists(f'{res_path}/{params}'):
                 os.makedirs(f'{res_path}/{params}')
             plt.figure(figsize=(40, 10))
@@ -216,7 +216,7 @@ for epoch in range(num_epochs):
             # plt.savefig(f"{res_path}/{params}/psnr_{piq.psnr(output.cpu(), target, data_range=1., reduction='mean')} "
             #             f"and ssim_{piq.ssim(output.cpu(), target, data_range=1.)}.png", bbox_inches="tight",
             #             pad_inches=0.0)
-            plt.savefig(f"{res_path}/{params}/{count}_model_training_output.png", bbox_inches="tight",
+            plt.savefig(f"{res_path}/{params}/model_training_output.png", bbox_inches="tight",
                         pad_inches=0.0)
             # plt.show()
         # lpips.append(piq.LPIPS(reduction='mean')(torch.clamp(output, 0, 1), torch.clamp(target.cuda(), 0, 255)))
